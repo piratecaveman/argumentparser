@@ -3,17 +3,9 @@ use crate::defarg::atypes::AType;
 use crate::parser::argvalues::ArgValue;
 use crate::parser::parsedargs::ParsedArguments;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ArgParser {
     pub parser: std::collections::HashMap<String, Argument>,
-}
-
-impl Default for ArgParser {
-    fn default() -> ArgParser {
-        ArgParser {
-            parser: std::collections::HashMap::new(),
-        }
-    }
 }
 
 impl ArgParser {
@@ -42,10 +34,13 @@ impl ArgParser {
     pub fn contains_arg<T: ToString>(&self, identity: T) -> bool {
         let identity = identity.to_string();
         self.parser.contains_key(&identity)
-            || self
-                .parser
-                .values()
-                .any(|f| f.short.eq(&Some(identity.clone())) || f.long.eq(&Some(identity.clone())))
+            || self.parser.values().any(|f| {
+                f.short
+                    .as_ref()
+                    .map(|f| f.eq(&identity))
+                    .unwrap_or_default()
+                    || f.long.as_ref().map(|f| f.eq(&identity)).unwrap_or_default()
+            })
     }
     fn is_flag<T: ToString>(&self, identity: T) -> bool {
         let found = self.get_arg(identity);
@@ -66,9 +61,13 @@ impl ArgParser {
         if self.parser.contains_key(&identity) {
             self.parser.get(&identity)
         } else {
-            self.parser
-                .values()
-                .find(|f| f.short.eq(&Some(identity.clone())) || f.long.eq(&Some(identity.clone())))
+            self.parser.values().find(|f| {
+                f.short
+                    .as_ref()
+                    .map(|f| f.eq(&identity))
+                    .unwrap_or_default()
+                    || f.long.as_ref().map(|f| f.eq(&identity)).unwrap_or_default()
+            })
         }
     }
     pub fn parse_args<T: ToString>(&mut self, some_args: &[T]) -> ParsedArguments {
@@ -80,11 +79,10 @@ impl ArgParser {
         fn is_long(word: &str) -> bool {
             word.starts_with("--")
         }
-        fn break_apart(word: &str) -> Vec<String> {
+        fn break_apart(word: &'_ str) -> impl Iterator<Item = String> + '_ {
             word.split("")
                 .filter(|f| !f.is_empty() && !f.starts_with('-'))
                 .map(|f| format!("-{}", f))
-                .collect::<Vec<_>>()
         }
         while env_args.peek().is_some() {
             let mut word = env_args.next().unwrap();
@@ -157,12 +155,8 @@ impl ArgParser {
                     parsed.args.insert(name, ArgValue::Flag(false));
                 } else {
                     let opts = break_apart(&word);
-                    assert!(
-                        opts.iter().all(|f| { self.contains_arg(&f) }),
-                        "unrecognized argument found in {}",
-                        word,
-                    );
                     for item in opts {
+                        assert!(self.contains_arg(&item));
                         let arg = self.get_arg(&item).unwrap();
                         let name = arg.name.clone();
                         let val = ArgValue::Flag(true);

@@ -14,9 +14,10 @@ impl Default for ArgValue {
 impl ArgValue {
     pub fn arg_type(&self) -> String {
         match self {
-            ArgValue::Flag(_) => "flag".to_string(),
-            ArgValue::Text(_) => "text".to_string(),
-            ArgValue::Vector(_) => "vector".to_string(),
+            ArgValue::Flag(_) => "flag",
+            ArgValue::Text(_) => "text",
+            ArgValue::Vector(_) => "vector",
         }
+        .to_string()
     }
 }
