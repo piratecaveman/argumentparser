@@ -156,7 +156,11 @@ impl ArgParser {
                 } else {
                     let opts = break_apart(&word);
                     for item in opts {
-                        assert!(self.contains_arg(&item));
+                        assert!(
+                            self.contains_arg(&item),
+                            "unrecognized option: {} found",
+                            &item
+                        );
                         let arg = self.get_arg(&item).unwrap();
                         let name = arg.name.clone();
                         let val = ArgValue::Flag(true);
