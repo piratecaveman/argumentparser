@@ -1,8 +1,9 @@
 [package]
 name = "argumentparser"
 version = "0.1.0"
-authors = ["Pirate Caveman"]
+authors = ["Pirate Caveman <piratecaveman@protonmail.com>"]
 edition = "2018"
+repository = "https://github.com/piratecaveman/argumentparser"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
